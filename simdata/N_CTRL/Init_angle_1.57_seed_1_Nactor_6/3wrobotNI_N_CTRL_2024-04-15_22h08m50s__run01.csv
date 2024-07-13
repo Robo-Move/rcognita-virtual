@@ -1,0 +1,20 @@
+System,3wrobotNI
+Controller,N_CTRL
+dt,0.1
+state_init,[-3.   -3.    1.57]
+Nactor,6
+pred_step_size_multiplier,5.0
+buffer_size,25
+run_obj_struct,quadratic
+R1_diag,"[100, 100, 10, 0, 0]"
+R2_diag,"[1, 10, 1, 0, 0]"
+Ncritic,25
+gamma,0.9
+critic_period_multiplier,1.0
+critic_struct,quad-mix
+actor_struct,quad-nomix
+t [s],x [m],y [m],alpha [rad],run_obj,accum_obj,v [m/s],omega [rad/s]
+0.0001,-2.995,-2.995,1.56985,1,0.1,-0.22000000000000003,-0.284
+0.0011,-2.9450000000000003,-2.9450000000000003,1.56835,1,0.2,-0.22000000000000003,-0.284
+0.0111,-2.4450000000000003,-2.4450000000000003,1.55335,1,0.30000000000000004,-0.22000000000000003,-0.284
+0.0611,0.054999999999999716,0.054999999999999716,1.47835,1,0.4,-0.22000000000000003,-0.284

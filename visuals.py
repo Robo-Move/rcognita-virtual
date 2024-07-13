@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 
 from svgpath2mpl import parse_path
 from collections import namedtuple
+from controllers import Stanley_CTRL
 # from svgpathconverter import SVGPathConverter
 
 class Animator:
@@ -153,7 +154,22 @@ class Animator3WRobotNI(Animator):
         self.text_target_handle = self.axs_xy_plane.text(0.88, 0.9, 'Target',
                                                    horizontalalignment='left', verticalalignment='center', transform=self.axs_xy_plane.transAxes)        
 
+        # PLotting Stanley trajectory
+        # self.trajectory = Stanley_CTRL(state_init)
+        # self.trajectory.way_points        
+        # self.axs_xy_plane.plot(self.trajectory.way_points[0], self.trajectory.way_points[1])
+        # self.axs_xy_plane.scatter(self.trajectory.way_points[0], self.trajectory.way_points[1], c="#FF3B30")
 
+
+        # Plotting Obstacles MPC
+        obstacle_circle = plt.Circle((circle_coord[0], circle_coord[1]), radius=circle_coord[2]*4, color='lightgreen', fill=True, lw=2)
+        self.axs_xy_plane.add_artist(obstacle_circle)
+        obstacle_circle = plt.Circle((circle_coord[0], circle_coord[1]), radius=circle_coord[2]*3, color='yellow', fill=True, lw=2)
+        self.axs_xy_plane.add_artist(obstacle_circle)
+        obstacle_circle = plt.Circle((circle_coord[0], circle_coord[1]), radius=circle_coord[2]*2, color='orange', fill=True, lw=2)
+        self.axs_xy_plane.add_artist(obstacle_circle)
+        obstacle_circle = plt.Circle((circle_coord[0], circle_coord[1]), radius=circle_coord[2], color='red', fill=True, lw=2)
+        self.axs_xy_plane.add_artist(obstacle_circle)
 
         self.robot_marker = RobotMarker(angle=alpha_deg0)
         text_time = 't = {time:2.3f}'.format(time = t0)
@@ -343,7 +359,3 @@ class Animator3WRobotNI(Animator):
             reset_line(self.line_traj)
     
             upd_line(self.line_traj, np.nan, np.nan)
-
-            
-
-   

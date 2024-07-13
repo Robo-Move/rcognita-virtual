@@ -298,6 +298,8 @@ class ControllerOptimalPredictive:
         self.action_sqn_init = []
         self.state_init = []
 
+        self.obstacle = obstacle
+
         if len(action_init) == 0:
             self.action_curr = self.action_min/10
             self.action_sqn_init = rep_mat( self.action_min/10 , 1, self.Nactor)
@@ -355,6 +357,7 @@ class ControllerOptimalPredictive:
             self.Wmin = np.zeros(self.dim_critic) 
             self.Wmax = np.ones(self.dim_critic) 
         self.N_CTRL = N_CTRL()
+        self.Stanley_CTRL = Stanley_CTRL(state_init)
 
     def reset(self,t0):
         """
@@ -395,17 +398,29 @@ class ControllerOptimalPredictive:
         
         """
         self.accum_obj_val += self.run_obj(observation, action)*self.sampling_time
-                 
+    
     def run_obj(self, observation, action):
         """
         Running (equivalently, instantaneous or stage) objective. Depending on the context, it is also called utility, reward, running cost etc.
         
         See class documentation.
         """
-        run_obj = 1
-        #####################################################################################################
-        ################################# write down here cost-function #####################################
-        #####################################################################################################
+        # run_obj = 1
+        
+        if self.run_obj_struct == 'quadratic':
+            R1 = self.run_obj_pars[0]
+            chi = np.concatenate([observation, action])
+            run_obj = chi.T @ R1 @ chi
+        
+        if self.obstacle is not None:
+            obstacle_x = self.obstacle[0]
+            obstacle_y = self.obstacle[1]
+            sigma = self.obstacle[2]
+            obstacle_gain = 100000000000    # 1000000000, 10000000, 1000000000
+            obs_cost_x = np.exp(-0.5 * ((observation[0] - obstacle_x) / sigma) ** 2) / (sigma * np.sqrt(2 * np.pi))
+            obs_cost_y = np.exp(-0.5 * ((observation[1] - obstacle_y) / sigma) ** 2) / (sigma * np.sqrt(2 * np.pi))
+            obs_cost = obs_cost_x * obs_cost_y
+            run_obj += obstacle_gain * obs_cost
 
         return run_obj
 
@@ -541,6 +556,10 @@ class ControllerOptimalPredictive:
             elif self.mode == "N_CTRL":
                 
                 action = self.N_CTRL.pure_loop(observation)
+
+            elif self.mode == "Stanley_CTRL":
+
+                action = self.Stanley_CTRL.pure_loop(observation)
             
             self.action_curr = action
             
@@ -551,11 +570,109 @@ class ControllerOptimalPredictive:
 
 class N_CTRL:
 
-        #####################################################################################################
-        ########################## write down here nominal controller class #################################
-        #####################################################################################################
+    def __init__(self):
+        self.counter = 0
+        self.linear_speed = 2.5
+        self.angular_speed = 3
+    
+    def pure_loop(self, observation):
+        k_rho = 1.0
+        k_alpha = 2.0
+        k_beta = -1.5
 
-        return [v,w]
+        x_goal = 0
+        y_goal = 0
 
+        x = observation[0]
+        y = observation[1]
+        theta = observation[2]
 
+        e_x = x_goal - x
+        e_y = y_goal - y
 
+        rho = np.sqrt(e_x**2 + e_y**2)
+        alpha = -theta + np.arctan2(e_y, e_x)
+        beta = -theta - alpha
+
+        v = k_rho*rho
+        w = k_alpha*alpha + k_beta*beta
+
+        if -np.pi < alpha <= -np.pi/2 or np.pi/2 < alpha <= np.pi:
+            v = -v
+
+        return [v, w]
+
+class Stanley_CTRL:
+
+    def __init__(self, state_init) -> None:
+        self.kappa_delta = 2
+        self.way_points = self._generate_trajectory(state_init[0], state_init[1], 28)
+        self.last_way_point = 0
+
+    # def _generate_trajectory(self, x_0, y_0, n):    # Generate Sine Trajectory
+    #     x = np.linspace(x_0, 0, n)
+    #     error_x = np.linspace(0, 4 * np.pi, n)
+    #     m = y_0 / x_0
+    #     y = m * x + np.sin(error_x) * 0.5
+    #     theta = np.zeros(n)
+    #     for i in range(1, n):
+    #         theta[i] = np.arctan2(y[i] - y[i - 1], x[i] - x[i - 1])
+    #     return [x, y, theta]
+    
+    def _generate_trajectory(self, x_0, y_0, n):    # Generate Circular Trajectory
+        radius = 3 # Circle Radius
+        angles = np.linspace(0, 2 * np.pi, n)
+        x = radius * np.cos(angles)
+        y = radius * np.sin(angles)
+        theta = np.zeros(n)
+        for i in range(1, n):
+            theta[i] = np.arctan2(y[i] - y[i - 1], x[i] - x[i - 1])
+        theta[0] = theta[1] if n > 1 else 0     # Adjust the starting angle to match the starting orientation
+        return [x, y, theta]
+
+    def get_nearest_waypoint(self, x, y):
+        dist = np.sqrt(np.power(x - self.way_points[0], 2) + np.power(y - self.way_points[1], 2))
+        index = np.argmin(dist)
+        if index < self.last_way_point:
+            index = self.last_way_point
+        print("Nearest wayppoint index: ")
+        print(index)
+        print([self.way_points[0][index], self.way_points[1][index], self.way_points[2][index]])
+        return [self.way_points[0][index], self.way_points[1][index], self.way_points[2][index]]
+
+    def get_nearest_waypoint(self, x, y):
+        dist = np.sqrt(np.power(x - self.way_points[0], 2) + np.power(y - self.way_points[1], 2))
+        index = np.argmin(dist)
+        if index < self.last_way_point:
+            index = self.last_way_point
+        print("Nearest waypoint index: ")
+        print(index)
+        print([self.way_points[0][index], self.way_points[1][index], self.way_points[2][index]])
+        return [self.way_points[0][index], self.way_points[1][index], self.way_points[2][index]]
+
+    def pure_loop(self, observation):
+        # Variables
+        x_current = observation[0]
+        y_current = observation[1]
+        theta_current = observation[2]
+        L = 0.5
+        v = 2
+
+        # Moving the position to the front axle
+        x_front = x_current + L * np.cos(theta_current)
+        y_front = y_current + L * np.sin(theta_current)
+
+        x_ref, y_ref, theta_ref = self.get_nearest_waypoint(x_front, y_front)
+
+        theta_error = theta_ref - theta_current
+        efa = ((y_ref - y_front) * np.cos(theta_ref)) - ((x_ref - x_front) * np.sin(theta_ref))
+        delta = theta_error + np.arctan((self.kappa_delta * efa) / v)
+
+        if delta < -np.pi:
+                delta = -np.pi
+        elif delta > np.pi:
+                delta = np.pi
+        else:
+                delta = delta
+
+        return [v, delta]

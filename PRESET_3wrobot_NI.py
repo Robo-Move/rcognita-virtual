@@ -37,7 +37,7 @@ parser = argparse.ArgumentParser(description=description)
 parser.add_argument('--ctrl_mode', metavar='ctrl_mode', type=str,
                     choices=['MPC',
                              "N_CTRL"],
-                    default='N_CTRL',
+                    default='MPC',
                     help='Control mode. Currently available: ' +
                     '----manual: manual constant control specified by action_manual; ' +
                     '----nominal: nominal controller, usually used to benchmark optimal controllers;' +                     
@@ -67,10 +67,10 @@ parser.add_argument('--action_manual', type=float,
                     default=[-5, -3], nargs='+',
                     help='Manual control action to be fed constant, system-specific!')
 parser.add_argument('--Nactor', type=int,
-                    default=6,
+                    default=12,
                     help='Horizon length (in steps) for predictive controllers.')
 parser.add_argument('--pred_step_size_multiplier', type=float,
-                    default=5.0,
+                    default=1.0,
                     help='Size of each prediction step in seconds is a pred_step_size_multiplier multiple of controller sampling time dt.')
 parser.add_argument('--buffer_size', type=int,
                     default=25,
@@ -81,7 +81,7 @@ parser.add_argument('--run_obj_struct', type=str,
                              'biquadratic'],
                     help='Structure of running objective function.')
 parser.add_argument('--R1_diag', type=float, nargs='+',
-                    default=[100, 100, 10, 0, 0],
+                    default=[10, 100, 0, 0, 0],
                     help='Parameter of running objective function. Must have proper dimension. ' +
                     'Say, if chi = [observation, action], then a quadratic running objective reads chi.T diag(R1) chi, where diag() is transformation of a vector to a diagonal matrix.')
 parser.add_argument('--R2_diag', type=float, nargs='+',
@@ -131,10 +131,10 @@ parser.add_argument('--init_robot_pose_theta', type=float,
                     default=1.57,
                     help='Initial orientation angle (in radians) of the robot pose.')
 parser.add_argument('--distortion_x', type=float,
-                    default=-0.6,
+                    default=-0.5,
                     help='X-coordinate of the center of distortion.')
 parser.add_argument('--distortion_y', type=float,
-                    default=-0.5,
+                    default=-0.6,
                     help='Y-coordinate of the center of distortion.')
 parser.add_argument('--distortion_sigma', type=float,
                     default=0.1,
@@ -189,10 +189,10 @@ atol = 1e-3
 rtol = 1e-2
 
 # xy-plane
-xMin = -4#-1.2
-xMax = 0.2
-yMin = -4#-1.2
-yMax = 0.2
+xMin = -5#-1.2
+xMax = 5
+yMin = -5#-1.2
+yMax = 5
 
 # Control constraints
 v_min = -0.22 *10

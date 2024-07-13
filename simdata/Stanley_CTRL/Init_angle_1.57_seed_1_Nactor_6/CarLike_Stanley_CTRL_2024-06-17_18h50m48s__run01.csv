@@ -1,0 +1,20 @@
+System,CarLike
+Controller,Stanley_CTRL
+dt,0.1
+state_init,[-3.   -3.    1.57]
+Nactor,6
+pred_step_size_multiplier,5.0
+buffer_size,25
+run_obj_struct,quadratic
+R1_diag,"[100, 100, 10, 0, 0]"
+R2_diag,"[1, 10, 1, 0, 0]"
+Ncritic,25
+gamma,0.9
+critic_period_multiplier,1.0
+critic_struct,quad-mix
+actor_struct,quad-nomix
+t [s],x [m],y [m],alpha [rad],run_obj,accum_obj,v [m/s],omega [rad/s]
+0.0001,-3.0,-3.0,1.57,1,0.1,-0.22000000000000003,-0.284
+0.0011,-3.00000015344779,-3.00019994785827,1.5700583628145701,1,0.2,-0.22000000000000003,-0.284
+0.0111,-3.0000010705944966,-3.0023999476292973,1.5707005210035356,1,0.30000000000000004,-0.22000000000000003,-0.284
+0.0611,-2.999984465121445,-3.01339993037053,1.5739113119483632,1,0.4,-0.22000000000000003,-0.284

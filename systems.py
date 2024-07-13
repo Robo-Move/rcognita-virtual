@@ -254,8 +254,7 @@ class System:
     
 class Sys3WRobotNI(System):
     """
-    System class: 3-wheel robot with static actuators (the NI - non-holonomic integrator).
-    
+    System class: 3-wheel robot with static actuators (the NI - non-holonomic integrator). 
     
     """ 
     
@@ -276,12 +275,15 @@ class Sys3WRobotNI(System):
         #####################################################################################################
         ############################# write down here math model of robot ###################################
         #####################################################################################################    
-             
+
+        x, y, theta = state
+        Dstate[0] = np.cos(theta) * action[0]
+        Dstate[1] = np.sin(theta) * action[0]
+        Dstate[2] = action[1]
         return Dstate    
  
     def _disturb_dyn(self, t, disturb):
         """
-        
         
         """       
         Ddisturb = np.zeros(self.dim_disturb)
@@ -295,4 +297,3 @@ class Sys3WRobotNI(System):
         observation = np.zeros(self.dim_output)
         observation = state
         return observation
-
